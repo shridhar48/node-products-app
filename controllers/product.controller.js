@@ -1,10 +1,13 @@
 const Product = require('../models/product.model');
 
 const getAllProducts = async (req, res) => {
+  console.log('GET /api/products called');
   try {
     const products = await Product.find({ deleted: false });
+    console.log('Products fetched:', products);
     res.status(200).json(products);
   } catch (error) {
+    console.error('Error fetching products:', error);
     res.status(500).json({ message: error?.message });
   }
 };
@@ -12,6 +15,7 @@ const getAllProducts = async (req, res) => {
 const getProductByName = async (req, res) => {
   try {
     const { name } = req.body;
+    console.log('getProductByName name :', name);
 
     if (!name) {
       return res.status(400).json({ error: 'Product name is required' });

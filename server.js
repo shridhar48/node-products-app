@@ -1,36 +1,57 @@
 const express = require('express');
 const mongoose = require('mongoose');
+const bodyParser = require('body-parser');
+const serverless = require('serverless-http'); // Import serverless-http
 require('dotenv').config();
 
 const productRouter = require('./routes/product.route');
 
 const app = express();
-app.use(express.json());
 
-app.use('/api/products', productRouter);
+// Middleware to ensure MongoDB connection
+let isConnected = false; // Track MongoDB connection status
 
-app.get('/', (req, res) => {
-  res.send('Hello World!!');
+const connectToMongoDB = async () => {
+  if (isConnected) return;
+  try {
+    const mongoURI = process.env.MONGODB_URI;
+    await mongoose.connect(mongoURI);
+    isConnected = true;
+    console.log('Connected to MongoDB!');
+  } catch (error) {
+    console.error('MongoDB connection failed:', error);
+    throw new Error('Database connection failed');
+  }
+};
+
+app.use((req, res, next) => {
+  console.log('Raw request headers:', req.headers);
+  console.log('Raw request url:', req.url);
+  console.log('Original request url:', req.originalUrl);
+  next();
 });
 
-const createServer = () => {
-  app.listen(3000, () => {
-    console.log('Server created');
-  });
-};
+// MongoDB connection middleware (this must be placed before any route handling)
+app.use(async (req, res, next) => {
+  try {
+    if (!isConnected) {
+      console.log('Connecting to MongoDB... :', req.url);
+      await connectToMongoDB();
+    }
+    console.log('MongoDB connected, processing request...', req.originalUrl);
+    next(); // Proceed to the next middleware or route handler
+  } catch (error) {
+    console.error('MongoDB connection error:', error);
+    res.status(500).send('Database connection error');
+  }
+});
 
-const connsectToMongoDB = () => {
-  const mongoURI = process.env.MONGODB_URI;
+// Body parser middleware (to parse incoming JSON bodies)
+app.use(bodyParser.json());
 
-  mongoose
-    .connect(mongoURI)
-    .then(() => {
-      console.log('Connected to mongo db!');
-      createServer();
-    })
-    .catch((error) => {
-      console.log('connection failed!!');
-    });
-};
+// Register product router after MongoDB connection middleware
+app.use('/api/products', productRouter);
 
-connsectToMongoDB();
+// Export the app for serverless (AWS Lambda)
+// module.exports.handler = serverless(app);
+module.exports.handler = app;
