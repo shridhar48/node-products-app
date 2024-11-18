@@ -12,6 +12,7 @@ const getAllProducts = async (req, res) => {
 const getProductByName = async (req, res) => {
   try {
     const { name } = req.body;
+    console.log('getProductByName name :', name);
 
     if (!name) {
       return res.status(400).json({ error: 'Product name is required' });

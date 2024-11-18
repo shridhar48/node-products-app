@@ -1,0 +1,61 @@
+# "org" ensures this Service is used with the correct Serverless Framework Access Key.
+org: shridhardev
+# "app" enables Serverless Framework Dashboard features and sharing them with other Services.
+app: serverlessproductapp
+# "service" is the name of this project. This will also be added to your AWS resource names.
+service: product-api
+
+provider:
+  name: aws
+  runtime: nodejs20.x
+  environment:
+    MONGODB_URI: 'mongodb+srv://shridharbhatdev:8L2PYVd63P2KYbWL@crudapidb.a0n8m.mongodb.net/Node-API?retryWrites=true&w=majority&appName=CrudAPIDB'
+
+plugins:
+  - serverless-offline
+
+custom:
+  basePath: api/products # Define the reusable base path here
+  serverless-offline:
+    httpPort: 3001
+
+functions:
+  getAllProducts:
+    handler: handler.handler
+    timeout: 30 # Timeout in seconds
+    events:
+      - http:
+          path: ${self:custom.basePath}
+          method: get
+
+  getProductByName:
+    handler: handler.handler
+    timeout: 30 # Timeout in seconds
+    events:
+      - http:
+          path: ${self:custom.basePath}/getProductByName
+          method: post
+
+  getProductById:
+    handler: handler.handler
+    timeout: 30 # Timeout in seconds
+    events:
+      - http:
+          path: ${self:custom.basePath}/getProductById
+          method: post
+
+  addProduct:
+    handler: handler.handler
+    timeout: 30 # Timeout in seconds
+    events:
+      - http:
+          path: ${self:custom.basePath}/addProduct
+          method: post
+
+  deleteProductByName:
+    handler: handler.handler
+    timeout: 30 # Timeout in seconds
+    events:
+      - http:
+          path: ${self:custom.basePath}/deleteProductByName
+          method: put
