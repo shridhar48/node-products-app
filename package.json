@@ -7,12 +7,14 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "serve": "node server.js",
     "dev": "nodemon server.js",
-    "serverless:dev": "serverless offline --config product-api/serverless.yml"
+    "serverless:offline": "serverless offline",
+    "serverless:deploy": "serverless deploy --force"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "aws-sdk": "^2.1692.0",
     "body-parser": "^1.20.3",
     "dotenv": "^16.4.5",
     "express": "^4.21.1",

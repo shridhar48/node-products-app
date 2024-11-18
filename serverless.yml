@@ -8,6 +8,7 @@ service: product-api
 provider:
   name: aws
   runtime: nodejs20.x
+  region: ap-south-1
   environment:
     MONGODB_URI: 'mongodb+srv://shridharbhatdev:8L2PYVd63P2KYbWL@crudapidb.a0n8m.mongodb.net/Node-API?retryWrites=true&w=majority&appName=CrudAPIDB'
 
@@ -22,10 +23,10 @@ custom:
 functions:
   getAllProducts:
     handler: handler.handler
-    timeout: 30 # Timeout in seconds
+    timeout: 60 # Timeout in seconds
     events:
       - http:
-          path: ${self:custom.basePath}
+          path: api/products
           method: get
 
   getProductByName:
@@ -33,7 +34,7 @@ functions:
     timeout: 30 # Timeout in seconds
     events:
       - http:
-          path: ${self:custom.basePath}/getProductByName
+          path: api/products/getProductByName
           method: post
 
   getProductById:
@@ -41,7 +42,7 @@ functions:
     timeout: 30 # Timeout in seconds
     events:
       - http:
-          path: ${self:custom.basePath}/getProductById
+          path: api/products/getProductById
           method: post
 
   addProduct:
@@ -49,7 +50,7 @@ functions:
     timeout: 30 # Timeout in seconds
     events:
       - http:
-          path: ${self:custom.basePath}/addProduct
+          path: api/products/addProduct
           method: post
 
   deleteProductByName:
@@ -57,5 +58,5 @@ functions:
     timeout: 30 # Timeout in seconds
     events:
       - http:
-          path: ${self:custom.basePath}/deleteProductByName
+          path: api/products/deleteProductByName
           method: put

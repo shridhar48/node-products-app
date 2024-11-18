@@ -1,38 +1,57 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
+const serverless = require('serverless-http'); // Import serverless-http
 require('dotenv').config();
 
 const productRouter = require('./routes/product.route');
 
 const app = express();
-app.use(bodyParser.json({ limit: '10mb' }));
 
-app.use('/api/products', productRouter);
-
-app.get('/', (req, res) => {
-  res.send('Hello World!!');
-});
+// Middleware to ensure MongoDB connection
+let isConnected = false; // Track MongoDB connection status
 
 const connectToMongoDB = async () => {
+  if (isConnected) return;
   try {
     const mongoURI = process.env.MONGODB_URI;
     await mongoose.connect(mongoURI);
+    isConnected = true;
     console.log('Connected to MongoDB!');
   } catch (error) {
     console.error('MongoDB connection failed:', error);
-    process.exit(1); // Exit if MongoDB connection fails
+    throw new Error('Database connection failed');
   }
 };
 
-// Start the app only after MongoDB is connected
-const startApp = async () => {
-  await connectToMongoDB(); // Ensure MongoDB is connected first
-  console.log('App is ready to handle requests.');
-};
+app.use((req, res, next) => {
+  console.log('Raw request headers:', req.headers);
+  console.log('Raw request url:', req.url);
+  console.log('Original request url:', req.originalUrl);
+  next();
+});
 
-// Call the startApp function to ensure everything is connected before starting
-startApp();
+// MongoDB connection middleware (this must be placed before any route handling)
+app.use(async (req, res, next) => {
+  try {
+    if (!isConnected) {
+      console.log('Connecting to MongoDB... :', req.url);
+      await connectToMongoDB();
+    }
+    console.log('MongoDB connected, processing request...', req.originalUrl);
+    next(); // Proceed to the next middleware or route handler
+  } catch (error) {
+    console.error('MongoDB connection error:', error);
+    res.status(500).send('Database connection error');
+  }
+});
 
-// Export the app handler for serverless-offline to use
+// Body parser middleware (to parse incoming JSON bodies)
+app.use(bodyParser.json());
+
+// Register product router after MongoDB connection middleware
+app.use('/api/products', productRouter);
+
+// Export the app for serverless (AWS Lambda)
+// module.exports.handler = serverless(app);
 module.exports.handler = app;
